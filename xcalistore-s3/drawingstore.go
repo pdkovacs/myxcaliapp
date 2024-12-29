@@ -48,7 +48,7 @@ func (store *DrawingStore) CreateSession(ctx context.Context) (string, error) {
 	}
 
 	body := strings.NewReader("empty")
-	sId := sessionId()
+	sId := SessionId()
 	key := fmt.Sprintf("%s/%s", sessionsObjectKeyPrefix, sId)
 
 	input := s3.PutObjectInput{
@@ -72,6 +72,10 @@ func (store *DrawingStore) deleteAllSessions(ctx context.Context) error {
 	keys, listErr := store.listObjectKeys(ctx, sessionsObjectKeyPrefix, false)
 	if listErr != nil {
 		return fmt.Errorf("failed to list session object keys (omitPrefix=false): %w", listErr)
+	}
+
+	if len(keys) == 0 {
+		return nil
 	}
 
 	var objectIds []types.ObjectIdentifier
@@ -124,7 +128,7 @@ func (store *DrawingStore) GetDrawing(ctx context.Context, title string) (string
 		return "", fmt.Errorf("failed to read content body for drawing %s: %w", title, readBodyErr)
 	}
 
-	fmt.Printf(">>>>>>>>> content: %#v", content)
+	fmt.Printf(">>>>>>>>> content: %#v\n", content)
 
 	return string(content), nil
 }
@@ -155,7 +159,7 @@ func (store *DrawingStore) listObjectKeys(ctx context.Context, prefix string, om
 	return keys, err
 }
 
-func sessionId() string {
+func SessionId() string {
 	buf := make([]byte, 32)
 
 	_, err := rand.Read(buf)

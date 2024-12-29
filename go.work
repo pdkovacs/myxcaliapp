@@ -1,6 +1,7 @@
 go 1.23.4
 
 use (
+	./aws-lambda
 	./backend
 	./xcalistore-s3
 )

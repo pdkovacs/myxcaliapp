@@ -1,4 +1,9 @@
-version: '3'
+version: "3"
+
+includes:
+  aws-lambda:
+    taskfile: ./aws-lambda/taskfile.yaml
+    dir: ./aws-lambda
 
 tasks:
   backend:

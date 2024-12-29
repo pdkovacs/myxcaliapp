@@ -1,0 +1,6 @@
+version: "3"
+
+includes:
+  sessiontest-lambda:
+    taskfile: sessiontest-lambda/taskfile.yaml
+    dir: sessiontest-lambda/

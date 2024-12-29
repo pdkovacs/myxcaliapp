@@ -1,3 +1,8 @@
 /client/node_modules/*
 /backend/myxcaliapp-backend
 .vscode
+.task
+bootstrap
+*.zip
+.terraform
+.terraform.lock.hcl
