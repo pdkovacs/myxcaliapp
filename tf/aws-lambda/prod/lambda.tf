@@ -1,7 +1,7 @@
 locals {
-  function_name    = "sessionTest"
-  archive_filename = "sessionTest.zip"
-  impl_dir         = "${path.module}/../../../aws-lambda/session-test"
+  function_names    = ["listdrawings", "getdrawing", "putdrawing"]
+  archive_filenames = [for f in local.function_names : "${f}.zip"]
+  impl_directories  = [for f in local.function_names : "${path.module}/../../../aws-lambda/${f}"]
 }
 
 data "aws_s3_bucket" "store" {
@@ -9,7 +9,7 @@ data "aws_s3_bucket" "store" {
 }
 
 resource "aws_iam_policy" "read_write_s3_bucket" {
-  name = "session_test_read_write_s3_bucket"
+  name = "xcaliapp_read_write_s3_bucket"
   policy = jsonencode({
     "Version" : "2012-10-17",
     "Statement" : [
@@ -38,7 +38,7 @@ resource "aws_iam_policy" "read_write_s3_bucket" {
 }
 
 resource "aws_iam_role" "iam_for_lambda" {
-  name = "session_test_iam_for_lambda"
+  name = "iam_for_xcaliapp_lambda"
 
   assume_role_policy = <<EOF
 {
@@ -68,35 +68,33 @@ resource "aws_iam_role_policy_attachment" "read_write_s3_bucket" {
 }
 
 resource "aws_lambda_permission" "apigw" {
+  count         = length(local.function_names)
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.xcali-session-test.function_name
+  function_name = aws_lambda_function.xcali-prod[count.index].function_name
   principal     = "apigateway.amazonaws.com"
 
   # The /*/* portion grants access from any method on any resource
   # within the API Gateway "REST API".
-  source_arn = "${aws_apigatewayv2_api.xcaliapp_session_test.execution_arn}/*/*"
+  source_arn = "${aws_apigatewayv2_api.xcaliapp_prod.execution_arn}/*/*"
 }
 
 data "archive_file" "lambda" {
+  count       = length(local.function_names)
   type        = "zip"
-  source_file = "${local.impl_dir}/bootstrap"
-  output_path = "${local.impl_dir}/${local.archive_filename}"
+  source_file = "${local.impl_directories[count.index]}/bootstrap"
+  output_path = "${local.impl_directories[count.index]}/${local.archive_filenames[count.index]}"
 }
 
-resource "aws_lambda_function" "xcali-session-test" {
-  # If the file is not in the current working directory you will need to include a
-  # path.module in the filename.
-  function_name = local.function_name
+resource "aws_lambda_function" "xcali-prod" {
+  count         = length(local.function_names)
+  function_name = local.function_names[count.index]
   architectures = ["arm64"]
-  filename      = "${local.impl_dir}/${local.archive_filename}"
+  filename      = "${local.impl_directories[count.index]}/${local.archive_filenames[count.index]}"
   role          = aws_iam_role.iam_for_lambda.arn
   handler       = "index.handler"
 
-  # The filebase64sha256() function is available in Terraform 0.11.12 and later
-  # For Terraform 0.11.11 and earlier, use the base64sha256() function and the file() function:
-  # source_code_hash = "${base64sha256(file("lambda_function_payload.zip"))}"
-  source_code_hash = data.archive_file.lambda.output_base64sha256
+  source_code_hash = data.archive_file.lambda[count.index].output_base64sha256
 
   runtime = "provided.al2023"
 
@@ -108,16 +106,16 @@ resource "aws_lambda_function" "xcali-session-test" {
 
   depends_on = [
     aws_iam_role_policy_attachment.lambda_logs,
-    aws_cloudwatch_log_group.xcali-session-test,
+    # aws_cloudwatch_log_group.xcali-prod[count.index],
   ]
 }
 
-resource "aws_cloudwatch_log_group" "xcali-session-test" {
-  name              = "/aws/lambda/${local.function_name}"
+resource "aws_cloudwatch_log_group" "xcali-prod" {
+  count             = length(local.function_names)
+  name              = "/aws/lambda/${local.function_names[count.index]}"
   retention_in_days = 14
 }
 
-# See also the following AWS managed policy: AWSLambdaBasicExecutionRole
 data "aws_iam_policy_document" "lambda_logging" {
   statement {
     effect = "Allow"
@@ -133,7 +131,7 @@ data "aws_iam_policy_document" "lambda_logging" {
 }
 
 resource "aws_iam_policy" "lambda_logging" {
-  name        = "session_test_lambda_logging"
+  name        = "xcaliapp_lambda_logging"
   path        = "/"
   description = "IAM policy for logging from a lambda"
   policy      = data.aws_iam_policy_document.lambda_logging.json

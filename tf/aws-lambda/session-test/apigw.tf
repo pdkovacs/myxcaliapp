@@ -68,7 +68,7 @@ EOF
 }
 
 resource "aws_iam_role_policy" "xcaliapp_session_test_apigw_cloudwatch" {
-  name = "default"
+  name = "session_test_apigw_clouldwatch"
   role = aws_iam_role.xcaliapp_session_test_apigw_cloudwatch.id
 
   policy = <<EOF

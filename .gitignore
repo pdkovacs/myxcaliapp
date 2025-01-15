@@ -1,4 +1,5 @@
 /client/node_modules/*
+/client/dist
 /backend/myxcaliapp-backend
 .vscode
 .task

@@ -1,0 +1,35 @@
+version: "3"
+
+vars:
+  AWS_ACCOUNT_ID: $AWS_ACCOUNT_ID
+  FUNCTION_NAME: sessionTest
+  SESSION_TEST_ZIP_FILE: sessionTest.zip
+
+tasks:
+  compile:
+    internal: true
+    sources:
+      - ../**/*
+    generates: 
+      - session-test/bootstrap
+    cmds:
+      - |
+        GOOS=linux GOARCH=arm64 go build -tags lambda.norpc -o bootstrap main.go
+        zip '{{.SESSION_TEST_ZIP_FILE}}' ./bootstrap
+        cd ../../client
+        npm ci
+        npm run build
+  deploy:
+    dotenv: [ ".env" ]
+    cmds:
+      - task: compile
+      - |
+        cd ../../tf/aws-lambda/session-test
+        terraform apply -var s3_bucket={{.DRAWINGS_BUCKET_NAME}}
+  undeploy:
+    dotenv: [ ".env" ]
+    cmds:
+      - |
+        cd ../../tf/aws-lambda/session-test
+        terraform destroy -var s3_bucket={{.DRAWINGS_BUCKET_NAME}}
+

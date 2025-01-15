@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strings"
+	xcalistores3 "xcalistore-s3"
 )
 
 type LambdaResponseToAPIGW struct {
@@ -70,6 +72,22 @@ func createResponse(challange bool, session string, body any) (*LambdaResponseTo
 	return respStruct, nil
 }
 
+func initDrawingStore() *xcalistores3.DrawingStore {
+	bucketName := os.Getenv("DRAWINGS_BUCKET_NAME")
+	if len(bucketName) == 0 {
+		panic("failed to obtain bucket-name from Lambda Context")
+	}
+
+	store, storeErr := xcalistores3.NewStore(context.Background(), "test-xcali-backend")
+	if storeErr != nil {
+		panic(fmt.Sprintf("failed to created S3 store: %v", storeErr))
+	}
+
+	return store
+}
+
+var store = initDrawingStore()
+
 // parseEventCheckCreateSession parses the event and, after checking the "Cookie" and "authentication" header for credentials returns as the map-typed first parameter.
 // The second return value is the session value the browser needs to set, the third parameter is an error response (most with a WWW-Authenticate challange) if any
 // the last parameter is an internal processing error if any.
@@ -86,6 +104,7 @@ func parseEventCheckCreateSession(sessMan SessionManager, ctx context.Context, e
 	fmt.Printf("cookies: %#v\n", parsedEvent["cookies"])
 	fmt.Printf("headers: %#v\n", parsedEvent["headers"])
 	fmt.Printf("multiValueHeaders: %#v\n", parsedEvent["multiValueHeaders"])
+	fmt.Printf("pathParameters: %#v\n", parsedEvent["pathParameters"])
 
 	headers, headersCastOk := parsedEvent["headers"].(map[string]any)
 	if !headersCastOk {

@@ -1,11 +1,21 @@
 version: "3"
 
+vars:
+  DRAWINGS_BUCKET_NAME: '{{ .DRAWINGS_BUCKET_NAME | default "test-xcalidrawings" }}'
+
 includes:
+  client:
+    taskfile: ./client/taskfile.yaml
+    dir: ./client
   aws-lambda:
     taskfile: ./aws-lambda/taskfile.yaml
     dir: ./aws-lambda
 
 tasks:
+  debug:
+    cmds:
+      - |
+        echo "Top: DRAWINGS_BUCKET_NAME="{{.DRAWINGS_BUCKET_NAME}}
   backend:
     cmds:
       - |

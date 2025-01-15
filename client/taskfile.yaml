@@ -1,0 +1,13 @@
+version: "3"
+
+tasks:
+  build:
+    cmds:
+      - |
+        npm ci
+        npm run build
+  deploy:
+    cmds:
+      - |
+        aws s3 cp --recursive ./dist/ s3://"{{.DRAWINGS_BUCKET_NAME}}"/
+

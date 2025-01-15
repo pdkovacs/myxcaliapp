@@ -1,6 +1,26 @@
 version: "3"
 
 includes:
-  sessiontest-lambda:
-    taskfile: sessiontest-lambda/taskfile.yaml
-    dir: sessiontest-lambda/
+  sessiontest:
+    taskfile: session-test/taskfile.yaml
+    dir: session-test/
+
+tasks:
+  prod:build:
+    cmds:
+      - |
+        for d in listdrawings getdrawing putdrawing;
+        do
+          cd $d
+          GOOS=linux GOARCH=arm64 go build -tags lambda.norpc -o bootstrap main.go
+          . .env
+          zip "$FUNCTION_NAME.zip" ./bootstrap
+          cd -
+        done
+  prod:deploy:
+    cmds:
+      - |
+        cd ../tf/aws-lambda/prod
+        # terraform init
+        terraform apply -var s3_bucket={{.DRAWINGS_BUCKET_NAME}}
+

@@ -30,11 +30,12 @@ const (
 func parseLevel() zerolog.Level {
 	logLevel := os.Getenv("LOG_LEVEL")
 	var level zerolog.Level
-	if logLevel == InfoLevel {
+	switch logLevel {
+	case InfoLevel:
 		level = zerolog.InfoLevel
-	} else if logLevel == DebugLevel {
+	case DebugLevel:
 		level = zerolog.DebugLevel
-	} else {
+	default:
 		level = zerolog.InfoLevel
 	}
 	fmt.Printf("Log level: %v\n", level)
