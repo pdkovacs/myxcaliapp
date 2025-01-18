@@ -17,5 +17,5 @@ export const fetchDrawing = async (title: string) => {
 
 export const saveDrawing = async (title: string, content: string) => {
   console.info("Saving drawing of length ", content.length, ", as ", title);
-  await axios.put(`/api/drawing?title=${title}`, JSON.stringify(content));
+  await axios.put(`/api/drawing/${title}`, JSON.stringify(content));
 };

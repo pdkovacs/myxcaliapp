@@ -32,10 +32,10 @@ func startServer(store *xcalistores3.DrawingStore) {
 		c.JSON(200, titles)
 	})
 
-	rootEngine.PUT("/drawing", func(c *gin.Context) {
+	rootEngine.PUT("/drawing/:title", func(c *gin.Context) {
 		logger := zerolog.Ctx(c.Request.Context())
 
-		title := c.Request.URL.Query().Get("title")
+		title := c.Param("title")
 		body, readBodyErr := io.ReadAll(c.Request.Body)
 		if readBodyErr != nil {
 			logger.Error().Err(readBodyErr).Msg("failed to read request body")

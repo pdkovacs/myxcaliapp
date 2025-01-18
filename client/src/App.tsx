@@ -16,7 +16,7 @@ const App = () => {
 
   const currentDrawingStatus = useAppSelector(selectDrawingToEditStatus);
   const savedDrawing = useAppSelector(selectSavedDrawing);
-  const currentContent = useAppSelector(selectCurrentDrawingContent);  
+  const currentContent = useAppSelector(selectCurrentDrawingContent);
 
   const [openDrawingDialogOpen, setOpenDrawingDialogOpen] = useState(false);
   const [saveDrawingDialogOpen, setSaveDrawingDialogOpen] = useState(false);
@@ -39,20 +39,20 @@ const App = () => {
       elements: savedDrawing.content ? JSON.parse(savedDrawing.content) : [],
       appState: {}
     };
-  
-    excalidrawAPI?.updateScene(sceneData);  
+
+    excalidrawAPI?.updateScene(sceneData);
   }, [savedDrawing]);
 
   const contentHasChanged = useMemo(() => {
     return !isEqual(savedDrawing.content, currentContent);
-  }, [savedDrawing, currentContent] );
+  }, [savedDrawing, currentContent]);
 
   console.log(">>>>>>>> contentHasChanged", contentHasChanged);
 
   return (
     <div className="App">
-      <h1 style={{ textAlign: "center" }}>Excalidraw Example</h1>
-      { currentDrawingStatus === "loading" && <LinearProgress sx={{ marginTop: "-4px" }}/> }
+      <h1 style={{ textAlign: "center" }}>My Excalidraw App</h1>
+      {currentDrawingStatus === "loading" && <LinearProgress sx={{ marginTop: "-4px" }} />}
       <div style={{ height: "calc(100vh - 80px)" }}>
         <Excalidraw excalidrawAPI={api => setExcalidrawAPI(api)}>
           <MainMenu>
